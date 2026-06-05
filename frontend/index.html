@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlantDoc</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f0f7f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2d6a4f;
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        p.subtitle {
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .upload-area{
+            border: 2px dashed #2d6a4f;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background 0.2s;
+        }
+        .upload-area:hover {
+            background: #f0f7f0;
+        }
+        .upload-area input {
+             display: none;
+        }
+        .upload-area p {
+            color: #555;
+            margin-top: 10px;
+        }
+        #preview {
+            width: 100%;
+            padding: 14px;
+            background: #2d6a4f;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #2d6a4f;
+            color: white;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #1b4332;
+        }
+        button:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 30px;
+            display: none;
+        }
+        .result-card {
+            background: #f0f7f0;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .result-card h2 {
+            color: #2d6a4f;
+            margin-bottom: 15px;
+        }
+        .result-item {
+            margin-bottom: 12px;
+        }
+        .result-item span {
+            font-weight: bold;
+            color: #333;
+        }
+        .severity-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        .Mild { background: #d4edda; color: #155724; }
+        .Moderate { background: #fff3cd; color: #856404; }
+        .Severe { background: #f8d7da; color: #721c24; }
+        .None { background: #d4edda; color: #155724; }
+        .loading {
+            text-align: center;
+            color: #2d6a4f;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PlantDoc</h1>
+        <p class="subtitle">Upload a leaf photo to detect plant diseases instantly</p>
+
+        <div class="upload-area" onclick="document.getElementById('imageInput').click()">
+            <input type="file" id="imageInput" accept="image"/*>
+            <p>Click to upload a leaf photo</p>
+        </div>
+
+        <img id="preview" src="" alt="Preview" style="margin-bottom: 20px;">
+        <button id="analyzeBtn" disabled>Analyze plant</button>
+
+        <div class="loading" id="loading">
+            Analyzing your plant...please wait
+        </div>
+
+        <div id="result">
+            <div class="result-card">
+                <h2>Analysis Result</h2>
+                <span>Disease:</span>
+                <p id="disease"></p>
+            </div>
+            <div class="result-item">
+                <span>Severity:</span>
+                <p><span id="severity" class="severity-badge"></span></p>
+            </div>
+            <div class="result-item">
+                <span>Treatment</span>
+                <p id="treatment"></p>
+            </div>
+        </div>
+    </div>
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const preview = document.getElementById('preview');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const result = document.getElementById('result');
+        const loading = document.getElementById('loading');
+
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                preview.src = URL.createObjectURL(file);
+                preview.style.display = 'block';
+                analyzeBtn.disabled = false;
+            }
+        });
+        analyzeBtn.addEventListener('click', async () => {
+            const file = imageInput.files[0];
+            if (!file) return;
+
+            analyzeBtn.disabled = true;
+            loading.style.display = 'block';
+            result.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try{
+                const response = await fetch('http://localhost:3000/scan/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+            
+                const data = await response.json();
+
+                document.getElementById('disease').textContent = data.disease;
+                document.getElementById('severity').textContent = data.severity;
+                document.getElementById('severity').className = 'severity-badge' + data.severity;
+                document.getElementById('treatment').textContent = data.treatment;
+
+                result.style.display = 'block';
+            } catch (err) {
+                alert('Something went wrong. Please try again.');
+            } finally {
+                analyzeBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
