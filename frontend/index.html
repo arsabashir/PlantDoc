@@ -687,7 +687,7 @@ analyzeBtn.addEventListener('click', async () => {
   formData.append('image', file);
 
   try {
-    const response = await fetch('http://localhost:3000/scan/upload', {  // Node backend
+    const response = await fetch('https://plantdoc-liu6.onrender.com/scan/upload', {  // Node backend
       method: 'POST',
       body: formData
     });
