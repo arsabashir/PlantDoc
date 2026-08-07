@@ -2,11 +2,13 @@ const FormData = require('form-data');
 const fs = require('fs');
 const fetch = require('node-fetch');
 
+const MODEL_SERVICE_URL = process.env.MODEL_SERVICE_URL || 'http://localhost:8000';
+
 async function analyzePlant(imagePath) {
     const form = new FormData();
     form.append('image', fs.createReadStream(imagePath));
 
-    const response = await fetch('http://localhost:8000/scan/upload', {
+    const response = await fetch(`${MODEL_SERVICE_URL}/scan/upload`, {
         method: 'POST',
         body: form,
         headers: form.getHeaders()
